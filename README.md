@@ -52,4 +52,4 @@
 
 ## 许可
 
-本仓库只包含自行编写的脚本、文档与工具；运行时与模型权重按 `LICENSES.md` 所列从官方来源获取。
+本仓库代码与文档以 [MIT](LICENSE) 发布。运行时与模型权重为第三方产物，不在本仓库分发，获取方式与各自许可见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
