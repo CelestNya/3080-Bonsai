@@ -1,0 +1,6 @@
+models/*.gguf
+models/*.tmp
+service.log
+*.log
+bin/
+share/
