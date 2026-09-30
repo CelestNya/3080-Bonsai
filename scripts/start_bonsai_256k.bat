@@ -1,7 +1,7 @@
 @echo off
 rem ============================================================
 rem Bonsai-2-27B (abliterated+MTP) 64K full-speed mode (no KVMem)
-rem For 10GB VRAM cards. 12GB cards: raise nothing, KV is tiny here.
+rem Verified on 10GB VRAM.
 rem Single-shot: no watchdog. Port 29187. Log: service.log
 rem ============================================================
 cd /d %~dp0..
