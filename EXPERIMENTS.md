@@ -50,7 +50,7 @@ GPU 利用率:  85-89%
 | 英文散文 | 0.48-0.91 | 2.0-3.7 |
 | 中文散文 | 0.34-0.46 | 1.9-2.2 |
 
-**教训**：早期用中文散文测试，得出「MTP 无效」的错误结论。**必须多任务类型对比**。
+注：早期仅用中文散文测试会得出「MTP 无效」的错误结论，实际是多任务类型差异。
 
 ### 5. ★★ 上下文断崖有两个不同根因
 
@@ -120,12 +120,12 @@ KVMem:   prompt eval = 68.7 t/s                  eval = 94.7 t/s
 
 ---
 
-## 三、测量方法学教训
+## 三、测量方法学
 
-### 我犯过的错误
+### 曾发生的测量偏差
 
-1. **变量未控制**：把 BI 和 n_max 同时改动，误判 BI 带来 58→65 的"突破"
-2. **环境污染**：残留的 llama-server 占显存，导致得出"KVMem 只有 24.6 tok/s"的错误结论
+1. **变量未控制**：BI 和 n_max 同时改动，曾把 58→65 的提升误归因于 BI
+2. **环境污染**：残留的 llama-server 占显存时，测得"KVMem 只有 24.6 tok/s"
 3. **测量口径**：用 30-token 短 prompt 测 prefill，得到 69 的假数字（真实 590-603）
 4. **样本偏差**：只用中文散文测 MTP，得出"无效"结论
 5. **过早优化**：未小规模验证就全面编译 combo，浪费 2 次 20 分钟
@@ -315,9 +315,9 @@ GGML_CUDA_FWHT_FUSION=0 → 84.3 tok/s   (+11.4%)
 - 混合 KV（q8_0/q4_0）下的高 prefill（~1082）
 - 高 decode（~90+）
 
-### 方法学教训（第三次同类错误）
+### 方法学记录（三）
 
-**我又一次在没有验证引擎能力的情况下做 A/B 测试**：
+**未验证引擎能力即做 A/B 测试的案例**：
 - 之前把「FWHT_FUSION=1 → 93.9」当作 +11.4% 收益
 - 实际验证：**KVMem 引擎根本没有 `GGML_CUDA_FWHT_FUSION` 字符串**（Python bytes.count = 0）
 - 那个"收益"是测量噪声（数据本来就在 85-99 波动）
@@ -414,9 +414,9 @@ llama-kvmem-server.exe -m bonsai-abliterated-mtp.gguf --jinja ^
 
 （另：若不需要 64K 上下文，b86fa 引擎可提供 prefill 1088 但 decode 降至 69.7）
 
-## 方法学教训（第四次）
+## 方法学记录（四）
 
-**A/B 测试前必须验证特性存在**：
+**A/B 测试前先验证特性存在**：
 - 用 `python -c "print(open('x.dll','rb').read().count(b'ENV_VAR_NAME'))"` 
 - 或用 CMakeCache 确认编译选项
 - 之前把「FWHT_FUSION=1 → +11.4%」当收益，实际该特性**不在**所用引擎里
@@ -955,7 +955,7 @@ llama-kvmem-server.exe -m bonsai-abliterated-mtp.gguf --jinja ^
 40+ 次跨换页请求零复发。怀疑 MTP 回滚快照（--kvmem-mtp-state）与换页回滚路径的竞态。
 二进制闭源无法进一步定位，以参数规避。
 
-**教训**：`service.log` 里 `EXITED code=` 是看门狗脚本的退出码记录，定位静默退出必须先加这个。
+`service.log` 里 `EXITED code=` 是脚本的退出码记录，定位静默退出依赖这一行。
 
 ## 2. 多会话 / 手动停止行为（--parallel 1）
 
@@ -1089,7 +1089,7 @@ cpu-gb 2 / q8_0+q4_0 / draft-mtp n_max 3 / f16 草稿 KV），手动启动，无
 - 隧道拓扑：广州节点 `22→17722`（SSH，一直正常）；香港节点 `local 29187 → 50768`（ChmlFrp，TCP 型）。
 - 公网 50768 返回 502 的原因：**隧道指向本地 29187，而服务开在 8080**——隧道本身没问题。
 - 处置：**改服务适配隧道**（start_service.bat `--port 29187`），frp 配置保持原样（曾误改 ini
-  又回滚，教训：用户的隧道/系统配置一律不动，让服务去适配）。
+  又回滚；最终方案是服务端改端口适配隧道）。
 - 公网实测：`http://vip.xg.frp.one:50768/health` → 200 ok，webui 首页 200（0.15s 延迟）。
   之前担心的备案拦截在该节点（香港 + TCP 型）不存在。
 - 后续所有测试/文档端口统一 29187。
@@ -1108,8 +1108,8 @@ cpu-gb 2 / q8_0+q4_0 / draft-mtp n_max 3 / f16 草稿 KV），手动启动，无
 - **BoldingBuilds PQ2_0-MTP 双消融版**已下载（7.65GB，aifasthub 5.6MB/s）并上线：
   - 权重 2.06bpw/7.13GiB（vs PTQ1_0 1.75bpw/5.95GiB）→ KV budget 40960→24576
   - 实测：显存 9629/10240 MiB ✓，prefill 963 t/s（比 PTQ1_0 还快），decode 50.6 t/s（短上下文+MTP）
-  - 教训：heredoc 生成 bat 时 `\$model` 转义翻车 → 模型路径变字面量 `models$model`，
-    服务 EXITED code=1。bat 生成后必须 grep 校验关键行。
+  - heredoc 生成 bat 时 `\$model` 转义翻车 → 模型路径变字面量 `models$model`，
+    服务 EXITED code=1。bat 生成后需 grep 校验关键行。
 - 三个启动脚本已全部单发化（无看门狗），端口守卫保留。当前：SRV_PQ2 任务挂 PQ2 版。
 
 ## 16i. PQ2 双消融版实测结果（2026-09-29 用户测试）
