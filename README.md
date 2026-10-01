@@ -41,7 +41,6 @@
 
 ## 关键参数依据
 
-- `nvidia-smi -pl 320`：解除出厂 100W 功耗墙（实测 100W 时 decode 7.4 tok/s，320W 时 110+ tok/s）。该设置重启失效，必须在启动时执行
 - `GGML_CUDA_BATCH_INVARIANT=1`：保证投机解码草稿/验证 logits 逐位一致；该开关只覆盖 1-4 列输出，因此 `--spec-draft-n-max` 上限为 3
 - `GGML_CUDA_PTQ1_0_MMQ_MAX_BATCH=0`：prefill 强制走 cuBLAS（实测 +51%）
 - KV 采用 q8_0 K + q4_0 V 混合：需要 `GGML_CUDA_FA_ALL_QUANTS=ON` 编译的运行时，否则 flash attention 静默回退 CPU（实测 prefill 1082 → 49.6 tok/s）

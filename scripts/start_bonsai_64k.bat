@@ -13,7 +13,6 @@ if not errorlevel 1 (
   echo port 29187 already in use - not starting
   exit /b 1
 )
-nvidia-smi -pl 320 >nul 2>&1
 set GGML_CUDA_BATCH_INVARIANT=1
 set GGML_CUDA_PTQ1_0_MMQ_MAX_BATCH=0
 echo [%DATE% %TIME%] starting 64k >> service.log
